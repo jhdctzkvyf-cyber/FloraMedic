@@ -7,76 +7,124 @@ export default async function handler(req, res) {
     const { image } = req.body;
 
     if (!image) {
-      return res.status(400).json({ error: "No plant image provided." });
+      return res.status(400).json({
+        error: "No plant image provided."
+      });
     }
 
+    // The browser sends the image as:
+    // data:image/jpeg;base64,ABC123...
+    const match = image.match(/^data:(.+);base64,(.+)$/);
+
+    if (!match) {
+      return res.status(400).json({
+        error: "Invalid image format."
+      });
+    }
+
+    const mimeType = match[1];
+    const base64Data = match[2];
+
+    const prompt = `
+You are FloraMedic, an AI-assisted plant health analyzer.
+
+Examine the uploaded plant photograph carefully.
+
+Give the user a concise plant health report with these sections:
+
+PLANT IDENTIFICATION
+Identify the plant if reasonably possible. If uncertain, say that.
+
+HEALTH STATUS
+Choose one:
+Healthy
+Needs Attention
+Possible Problem
+Serious Symptoms
+
+VISIBLE SYMPTOMS
+Describe only symptoms that are actually visible in the photograph.
+
+MOST LIKELY ISSUE
+Explain the most likely cause of the visible symptoms.
+
+CONFIDENCE
+Low, Medium, or High.
+
+POSSIBLE ALTERNATIVE CAUSES
+Give up to three other reasonable possibilities.
+
+CARE RECOMMENDATIONS
+Give 3-5 practical steps the owner can take.
+
+IMPORTANT:
+Do not invent a disease when the plant appears healthy.
+Do not pretend to be certain when a photo alone is insufficient.
+If the image does not clearly contain a plant, say so.
+Keep the explanation easy for a normal plant owner to understand.
+`;
+
     const response = await fetch(
-      "https://ai-gateway.vercel.sh/v1/chat/completions",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.AI_GATEWAY_API_KEY}`,
+          "x-goog-api-key": process.env.GEMINI_API_KEY
         },
         body: JSON.stringify({
-          model: "openai/gpt-4o-mini",
-          messages: [
+          contents: [
             {
-              role: "system",
-              content:
-                "You are FloraMedic, an AI plant-care assistant. Analyze plant photos for visible signs of stress, disease, pests, watering problems, nutrient issues, or other plant-health problems. Do not claim certainty from an image alone. Clearly state when something cannot be determined visually.",
-            },
-            {
-              role: "user",
-              content: [
+              parts: [
                 {
-                  type: "text",
-                  text: `Analyze this plant photo.
-
-Return a concise report containing:
-1. Plant identification, if reasonably identifiable
-2. Visible symptoms
-3. Most likely problem
-4. Confidence: Low, Medium, or High
-5. Recommended care steps
-6. Other possible causes
-
-If the plant looks healthy, say so rather than inventing a disease.`,
+                  text: prompt
                 },
                 {
-                  type: "image_url",
-                  image_url: {
-                    url: image,
-                  },
-                },
-              ],
-            },
-          ],
-          max_tokens: 700,
-        }),
+                  inline_data: {
+                    mime_type: mimeType,
+                    data: base64Data
+                  }
+                }
+              ]
+            }
+          ]
+        })
       }
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error(data);
+      console.error("Gemini error:", data);
+
       return res.status(response.status).json({
-        error: data?.error?.message || "AI analysis failed.",
+        error:
+          data?.error?.message ||
+          "Gemini could not analyze this image."
       });
     }
 
-    const diagnosis = data?.choices?.[0]?.message?.content;
+    const diagnosis =
+      data?.candidates?.[0]?.content?.parts
+        ?.map(part => part.text || "")
+        .join("\n")
+        .trim();
 
     if (!diagnosis) {
-      return res.status(500).json({ error: "No diagnosis was returned." });
+      return res.status(500).json({
+        error: "Gemini returned no plant analysis."
+      });
     }
 
-    return res.status(200).json({ diagnosis });
+    return res.status(200).json({
+      diagnosis
+    });
+
   } catch (error) {
-    console.error(error);
+    console.error("FloraMedic error:", error);
+
     return res.status(500).json({
-      error: "FloraMedic could not analyze this image.",
+      error: "FloraMedic could not analyze this image."
     });
   }
 }
