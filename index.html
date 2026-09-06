@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FloraMedic | Plant Health Assistant</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6faf6;
+      color: #18352a;
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 8%;
+      background: white;
+      border-bottom: 1px solid #e5eee7;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .logo span {
+      color: #4d8b61;
+    }
+
+    main {
+      min-height: 85vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 50px 20px;
+    }
+
+    .container {
+      max-width: 850px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #e6f3e9;
+      color: #39704b;
+      padding: 8px 15px;
+      border-radius: 20px;
+      margin-bottom: 22px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    h1 {
+      font-size: 52px;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    h1 span {
+      color: #4d8b61;
+    }
+
+    .subtitle {
+      max-width: 650px;
+      margin: auto;
+      color: #607168;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .upload-card {
+      background: white;
+      max-width: 620px;
+      margin: 40px auto 0;
+      padding: 35px;
+      border-radius: 20px;
+      border: 1px solid #dfe9e1;
+      box-shadow: 0 12px 35px rgba(34, 70, 48, 0.08);
+    }
+
+    .upload-area {
+      border: 2px dashed #9dbba5;
+      border-radius: 15px;
+      padding: 40px 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .upload-area:hover {
+      background: #f3f9f4;
+    }
+
+    .plant-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .upload-area h2 {
+      margin-bottom: 10px;
+    }
+
+    .upload-area p {
+      color: #718078;
+      margin-bottom: 20px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .button {
+      display: inline-block;
+      background: #39704b;
+      color: white;
+      padding: 13px 24px;
+      border-radius: 9px;
+      font-weight: bold;
+    }
+
+    #preview {
+      display: none;
+      width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      border-radius: 12px;
+      margin-top: 25px;
+    }
+
+    #message {
+      margin-top: 18px;
+      color: #39704b;
+      font-weight: bold;
+    }
+
+    .features {
+      display: flex;
+      justify-content: center;
+      gap: 35px;
+      margin-top: 45px;
+      color: #5e7065;
+      font-size: 14px;
+      flex-wrap: wrap;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: #7b8a81;
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 38px;
+      }
+
+      .upload-card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <div class="logo">Flora<span>Medic</span></div>
+    <div>Plant Health Assistant 🌿</div>
+  </nav>
+
+  <main>
+    <div class="container">
+
+      <div class="badge">🌱 AI-Assisted Plant Care</div>
+
+      <h1>
+        Understand what your
+        <span>plant needs.</span>
+      </h1>
+
+      <p class="subtitle">
+        Upload a photo of your plant and FloraMedic will help identify
+        visible symptoms and guide you toward simple care steps.
+      </p>
+
+      <div class="upload-card">
+
+        <label class="upload-area" for="plantImage">
+
+          <div class="plant-icon">🌿</div>
+
+          <h2>Upload your plant</h2>
+
+          <p>
+            Choose a clear photo showing the leaves and any visible symptoms.
+          </p>
+
+          <span class="button">Choose Photo</span>
+
+        </label>
+
+        <input
+          type="file"
+          id="plantImage"
+          accept="image/*"
+        >
+
+        <img id="preview" alt="Plant preview">
+
+        <div id="message"></div>
+
+      </div>
+
+      <div class="features">
+        <div>📷 Upload a photo</div>
+        <div>🔍 Examine symptoms</div>
+        <div>🌱 Receive care guidance</div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    FloraMedic • Built for VoltHacks 2026
+  </footer>
+
+  <script>
+    const input = document.getElementById("plantImage");
+    const preview = document.getElementById("preview");
+    const message = document.getElementById("message");
+
+    input.addEventListener("change", function () {
+
+      const file = this.files[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = function (event) {
+        preview.src = event.target.result;
+        preview.style.display = "block";
+
+        message.textContent =
+          "Photo uploaded successfully. Analysis will be added next.";
+      };
+
+      reader.readAsDataURL(file);
+
+    });
+  </script>
+
+</body>
+</html>
