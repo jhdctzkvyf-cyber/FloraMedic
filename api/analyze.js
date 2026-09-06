@@ -19,7 +19,7 @@ export default async function handler(req, res) {
           Authorization: `Bearer ${process.env.AI_GATEWAY_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "openai/gpt-5.4-fast",
+          model: "openai/gpt-4o-mini",
           messages: [
             {
               role: "system",
