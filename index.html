@@ -235,31 +235,78 @@
     FloraMedic • Built for VoltHacks 2026
   </footer>
 
-  <script>
-    const input = document.getElementById("plantImage");
-    const preview = document.getElementById("preview");
-    const message = document.getElementById("message");
+<script>
+  const input = document.getElementById("plantImage");
+  const preview = document.getElementById("preview");
+  const message = document.getElementById("message");
 
-    input.addEventListener("change", function () {
+  input.addEventListener("change", function () {
+    const file = this.files[0];
 
-      const file = this.files[0];
+    if (!file) return;
 
-      if (!file) return;
+    const reader = new FileReader();
 
-      const reader = new FileReader();
+    reader.onload = async function (event) {
+      const imageData = event.target.result;
 
-      reader.onload = function (event) {
-        preview.src = event.target.result;
-        preview.style.display = "block";
+      preview.src = imageData;
+      preview.style.display = "block";
 
-        message.textContent =
-          "Photo uploaded successfully. Analysis will be added next.";
-      };
+      message.textContent = "Analyzing your plant... 🌿";
 
-      reader.readAsDataURL(file);
+      try {
+        const response = await fetch("/api/analyze", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            image: imageData
+          })
+        });
 
-    });
-  </script>
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Analysis failed.");
+        }
+
+        message.innerHTML = `
+          <div style="
+            text-align:left;
+            margin-top:25px;
+            padding:25px;
+            background:#f3f9f4;
+            border-radius:15px;
+            line-height:1.7;
+            white-space:pre-wrap;
+          ">
+            <strong style="font-size:20px;">🌿 FloraMedic Report</strong>
+            <br><br>
+            ${data.diagnosis}
+          </div>
+        `;
+      } catch (error) {
+        console.error(error);
+
+        message.innerHTML = `
+          <div style="
+            margin-top:20px;
+            padding:18px;
+            background:#fff4f4;
+            border-radius:12px;
+            color:#8a3434;
+          ">
+            FloraMedic could not analyze this photo. Please try another image.
+          </div>
+        `;
+      }
+    };
+
+    reader.readAsDataURL(file);
+  });
+</script>
 
 </body>
 </html>
